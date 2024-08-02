@@ -7,26 +7,51 @@
 
 import UIKit
 import SnapKit
+import RxSwift
+import RxCocoa
 //
 class PasswordViewController: UIViewController {
    
-    let passwordTextField = SignTextField(placeholderText: "비밀번호를 입력해주세요")
+    private let passwordTextField = {
+        let textField = SignTextField(placeholderText: "비밀번호를 입력해주세요")
+        textField.keyboardType = .decimalPad
+        return textField
+    }()
+ 
     let nextButton = PointButton(title: "다음")
-    
+    let validText = BehaviorSubject(value: "010")
+    var isInitialInputDone = false
+    let disposeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = Color.white
         
         configureLayout()
-         
-        nextButton.addTarget(self, action: #selector(nextButtonClicked), for: .touchUpInside)
+        bind()
+       
     }
-    
-    @objc func nextButtonClicked() {
-        
-        navigationController?.pushViewController(PhoneViewController(), animated: true)
+    private func bind() {
+        let validation = passwordTextField.rx.text
+            .orEmpty
+            .map { $0.count >= 10}
+        validation
+            .bind(to: nextButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+        validation
+            .bind(with: self) { owner, value in
+                let color: UIColor = value ? .systemBlue : .systemGray
+                owner.nextButton.backgroundColor = color
+                owner.nextButton.isEnabled = !value
+            }
+            .disposed(by: disposeBag)
+        nextButton.rx.tap
+            .bind(with: self) { owner, value in
+                owner.navigationController?.pushViewController(PhoneViewController(), animated: true)
+            }
+            .disposed(by: disposeBag)
     }
+   
     
     func configureLayout() {
         view.addSubview(passwordTextField)
