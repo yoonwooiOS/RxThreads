@@ -15,52 +15,61 @@ import RxCocoa
  email 검증을 한다
  검증에 통과되면 다음 버튼을 눌러서 화면 이동을 한다
  */
-
+enum emailError: String, Error {
+    case invalidEmail = "이메일은 4자 이상 @가 포함되어야 합니다."
+    case validEmail = "사용 가능한 이메일 입니다"
+}
 class SignUpViewController: UIViewController {
     
     let emailTextField = SignTextField(placeholderText: "이메일을 입력해주세요")
     let validationButton = UIButton()
+    let stateLabel = {
+        let label = UILabel()
+        return label
+    }()
+   
     let nextButton = PointButton(title: "다음")
+    var emailData = PublishSubject<String>()
+    
     let disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = Color.white
         
+            
         configureLayout()
         configure()
-        
-        nextButton.addTarget(self, action: #selector(nextButtonClicked), for: .touchUpInside)
         bind()
     }
+   
     private func bind() {
-        let textvalid = emailTextField.rx.text.orEmpty
-            .map { $0.count >= 4}
-        print(textvalid)
-        
-        let textValidate = BehaviorSubject(value: false) // 검증된 값을 담아줄 Observable 생성
-        emailTextField.rx.text.orEmpty // emailTextField.rx.text emailTextField에 입력된 값을 가지고 온다 | orEmpty 사용시 값이 nil일 경우 "" 출력
-            .bind(with: self) { owner, text in // subscribe 시점 -> 하지만 textFiled는 error나 complete가 필요 없기 때문에 bind로 구독
-                if text.contains("@")  {
-                    textValidate.onNext(true)
-                } else {
-                    textValidate.onNext(false)
-                }
+        let validText = emailTextField.rx.text
+            .orEmpty
+            .map { $0.count >= 4 && $0.contains("@")}
+        validText
+            .debug("\(validText)")
+            .bind(to: nextButton.rx.isEnabled, validationButton.rx.isHidden)
+            .disposed(by: disposeBag)
+        validText
+            .bind(with: self) { owner, value in
+                let color: UIColor = value ? .systemBlue : .systemGray
+                owner.nextButton.backgroundColor = color
+                owner.validationButton.isHidden = !value
+                owner.stateLabel.text = value ? emailError.validEmail.rawValue : emailError.invalidEmail.rawValue
+                owner.stateLabel.textColor = value ? .systemGreen : .systemRed
             }
+            .disposed(by: disposeBag)
+        emailData
+            .bind(to: emailTextField.rx.text)
+            .disposed(by: disposeBag)
+        nextButton.rx.tap
+            .bind(with: self) {owner, value in
+                owner.navigationController?.pushViewController(PasswordViewController(), animated: true)
+            }
+            .disposed(by: disposeBag)
             
-        
-        textValidate
-            .bind(with: self) { owner, valid in // subscribe 시점 -> textValidate가 바뀌면 적용할 일
-            if valid {
-                print("이메일 검증이 성공했습니다.")
-            } else {
-                print("다시 입력해주세요")
-            }
-        }
-        .disposed(by: disposeBag)
-    }
-    @objc func nextButtonClicked() {
-//        navigationController?.pushViewController(PasswordViewController(), animated: true)
     }
 
     func configure() {
@@ -74,25 +83,23 @@ class SignUpViewController: UIViewController {
     func configureLayout() {
         view.addSubview(emailTextField)
         view.addSubview(validationButton)
+        view.addSubview(stateLabel)
         view.addSubview(nextButton)
-        
-        validationButton.snp.makeConstraints { make in
-            make.height.equalTo(50)
-            make.top.equalTo(view.safeAreaLayoutGuide).offset(200)
-            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
-            make.width.equalTo(100)
-        }
         
         emailTextField.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.top.equalTo(view.safeAreaLayoutGuide).offset(200)
-            make.leading.equalTo(view.safeAreaLayoutGuide).inset(20)
+            make.horizontalEdges.equalTo(view.safeAreaLayoutGuide).inset(20)
             make.trailing.equalTo(validationButton.snp.leading).offset(-8)
         }
-        
+        stateLabel.snp.makeConstraints { make in
+            make.top.equalTo(emailTextField.snp.bottom).offset(8)
+            make.horizontalEdges.equalTo(view.safeAreaLayoutGuide).inset(20)
+            make.height.equalTo(30)
+        }
         nextButton.snp.makeConstraints { make in
             make.height.equalTo(50)
-            make.top.equalTo(emailTextField.snp.bottom).offset(30)
+            make.top.equalTo(stateLabel.snp.bottom).offset(12)
             make.horizontalEdges.equalTo(view.safeAreaLayoutGuide).inset(20)
         }
     }
@@ -100,3 +107,21 @@ class SignUpViewController: UIViewController {
 
 }
  
+import UIKit
+
+extension UIViewController {
+    
+    func showAlert(t: String, msg: String, style: UIAlertController.Style, ok: String, complitionHandler: @escaping (UIAlertAction) -> Void ) {
+        
+        let alert = UIAlertController(title: t, message: msg, preferredStyle: style)
+        
+        let canel = UIAlertAction(title: "취소", style: .cancel)
+        let ok = UIAlertAction(title: ok, style: .destructive, handler: complitionHandler)
+        
+        alert.addAction(ok)
+        alert.addAction(canel)
+        present(alert, animated: true, completion: nil)
+        
+        
+    }
+}
