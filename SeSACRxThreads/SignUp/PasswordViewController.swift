@@ -14,13 +14,13 @@ class PasswordViewController: UIViewController {
    
     private let passwordTextField = {
         let textField = SignTextField(placeholderText: "비밀번호를 입력해주세요")
+        
         textField.keyboardType = .decimalPad
         return textField
     }()
  
     let nextButton = PointButton(title: "다음")
-    let validText = BehaviorSubject(value: "010")
-    var isInitialInputDone = false
+    let validText = PublishSubject<String>()
     let disposeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,9 +29,10 @@ class PasswordViewController: UIViewController {
         
         configureLayout()
         bind()
-       
+        
     }
     private func bind() {
+        passwordTextField.rx.text.onNext("010")
         let validation = passwordTextField.rx.text
             .orEmpty
             .map { $0.count >= 10}
@@ -42,11 +43,12 @@ class PasswordViewController: UIViewController {
             .bind(with: self) { owner, value in
                 let color: UIColor = value ? .systemBlue : .systemGray
                 owner.nextButton.backgroundColor = color
-                owner.nextButton.isEnabled = !value
+                
             }
             .disposed(by: disposeBag)
         nextButton.rx.tap
             .bind(with: self) { owner, value in
+                print("sdsa")
                 owner.navigationController?.pushViewController(PhoneViewController(), animated: true)
             }
             .disposed(by: disposeBag)
