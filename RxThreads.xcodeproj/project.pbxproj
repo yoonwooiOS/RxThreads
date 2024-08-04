@@ -32,6 +32,7 @@
 		04F6DC002C5B0C2200667F4D /* SearchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F6DBFF2C5B0C2200667F4D /* SearchTableViewCell.swift */; };
 		04F6DC022C5B0D8200667F4D /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F6DC012C5B0D8200667F4D /* DetailViewController.swift */; };
 		99B83B2B2C5DD99E00E6805A /* ValidText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B83B2A2C5DD99E00E6805A /* ValidText.swift */; };
+		99B83B2E2C5FCCA800E6805A /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B83B2D2C5FCCA800E6805A /* UIViewController+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +79,7 @@
 		04F6DBFF2C5B0C2200667F4D /* SearchTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTableViewCell.swift; sourceTree = "<group>"; };
 		04F6DC012C5B0D8200667F4D /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		99B83B2A2C5DD99E00E6805A /* ValidText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidText.swift; sourceTree = "<group>"; };
+		99B83B2D2C5FCCA800E6805A /* UIViewController+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 		041280222AEF9BAB00972552 /* SeSACRxThreads */ = {
 			isa = PBXGroup;
 			children = (
+				99B83B2C2C5FCC9900E6805A /* Extension */,
 				99B83B292C5DD98300E6805A /* Enum */,
 				041280532AEF9C1F00972552 /* SignUp */,
 				041280542AEF9C2600972552 /* SignIn */,
@@ -218,6 +221,14 @@
 				99B83B2A2C5DD99E00E6805A /* ValidText.swift */,
 			);
 			path = Enum;
+			sourceTree = "<group>";
+		};
+		99B83B2C2C5FCC9900E6805A /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				99B83B2D2C5FCCA800E6805A /* UIViewController+Extension.swift */,
+			);
+			path = Extension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -359,6 +370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99B83B2E2C5FCCA800E6805A /* UIViewController+Extension.swift in Sources */,
 				041280782AF1D14000972552 /* Resource.swift in Sources */,
 				0412806F2AEFAD2D00972552 /* BirthdayViewController.swift in Sources */,
 				041280652AEFA2F000972552 /* SignTextField.swift in Sources */,

@@ -132,7 +132,13 @@ class BirthdayViewController: UIViewController {
             .disposed(by: disposBag)
         nextButton.rx.tap
             .bind(with: self) { owner, _ in
-                owner.navigationController?.pushViewController(SearchViewController(), animated: true)
+                owner.showAlert(t: "가입되었습니다!", msg: "", style: .alert, ok: "확인") { _ in
+                    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+                    let sceneDelegate = windowScene?.delegate as? SceneDelegate
+                    let navigationController = UINavigationController(rootViewController: SignInViewController())
+                    sceneDelegate?.window?.rootViewController = navigationController
+                    sceneDelegate?.window?.makeKeyAndVisible()
+                }
             }
             .disposed(by: disposBag)
     }
@@ -169,37 +175,4 @@ class BirthdayViewController: UIViewController {
         }
     }
     
-}
-
-extension BirthdayViewController {
-    func yearDateFormatter() -> Int {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy"
-        let thisYear = formatter.string(from: Date())
-        guard let thisYear = Int(thisYear) else {
-            print("monthDateFormatter Error")
-            return 0
-        }
-        return thisYear
-    }
-    func monthDateFormatter() -> Int {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M"
-        let thisMonth = formatter.string(from: Date())
-        guard let thisMonth = Int(thisMonth) else {
-            print("monthDateFormatter Error")
-            return 0
-        }
-        return thisMonth
-    }
-    func todayDateFormatter() -> Int {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        let today = formatter.string(from: Date())
-        guard let today = Int(today) else {
-            print("todayDateFormatter Error")
-            return 0
-        }
-        return today
-    }
 }
