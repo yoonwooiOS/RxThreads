@@ -20,4 +20,8 @@ enum ValidText {
         case invalidNumber = "휴대폰 번호는 10글자 이상입니다"
         case validNumber = "올바른 번호 입니다"
     }
+    enum BirthdayError: String, Error {
+        case invalidBirthday = "만 17세 이상만 가입 가능합니다."
+        case validBirthDay = "가입 가능합니다."
+    }
 }
