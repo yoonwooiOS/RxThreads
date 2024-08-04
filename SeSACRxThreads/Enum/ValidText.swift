@@ -24,4 +24,8 @@ enum ValidText {
         case invalidBirthday = "만 17세 이상만 가입 가능합니다."
         case validBirthDay = "가입 가능합니다."
     }
+    enum nicknameError: String, Error {
+        case invalidNickname = "닉네임은 2글자 이상 10글자 이하입니다."
+        case validNickname = "사용하능한 닉네임입니다."
+    }
 }
