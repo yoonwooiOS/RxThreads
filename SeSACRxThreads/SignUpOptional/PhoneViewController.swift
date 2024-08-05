@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import RxCocoa
 import RxSwift
-class PhoneViewController: UIViewController {
+final class PhoneViewController: UIViewController {
     private let phoneTextField = {
         let textField = SignTextField(placeholderText: "연락처를 입력해주세요")
         textField.keyboardType = .decimalPad
@@ -18,6 +18,7 @@ class PhoneViewController: UIViewController {
     let phoneNumverValidStateLabel = UILabel()
     let nextButton = PointButton(title: "다음")
     let validText = PublishSubject<String>()
+    let viewModel = PhoneViewModel()
     let disposeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,14 +30,18 @@ class PhoneViewController: UIViewController {
         
     }
     private func bind() {
-        phoneTextField.rx.text.onNext("010")
-        let validation = phoneTextField.rx.text
-            .orEmpty
-            .map { $0.count >= 10}
-        validation
+        let input = PhoneViewModel.Input(tap: nextButton.rx.tap, text: phoneTextField.rx.text)
+        let output = viewModel.transform(input: input)
+        
+        viewModel.text
+            .bind(to: phoneTextField.rx.text)
+            .disposed(by: disposeBag)
+        
+       
+        output.validation
             .bind(to: nextButton.rx.isEnabled)
             .disposed(by: disposeBag)
-        validation
+        output.validation
             .bind(with: self) { owner, value in
                 let color: UIColor = value ? .systemBlue : .systemGray
                 owner.nextButton.backgroundColor = color
@@ -44,7 +49,7 @@ class PhoneViewController: UIViewController {
                 owner.phoneNumverValidStateLabel.textColor = value ? .systemGreen : .systemRed
             }
             .disposed(by: disposeBag)
-        nextButton.rx.tap
+        output.tap
             .bind(with: self) { owner, value in
                 print("sdsa")
                 owner.navigationController?.pushViewController(NicknameViewController(), animated: true)
