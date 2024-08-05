@@ -15,6 +15,7 @@ class NicknameViewController: UIViewController {
     let nicknameTextField = SignTextField(placeholderText: "닉네임을 입력해주세요")
     let nextButton = PointButton(title: "다음")
     let nicknameStateLabel = UILabel()
+    let viewModel = NicknameViewModel()
     let disposeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,13 +24,12 @@ class NicknameViewController: UIViewController {
         bind()
     }
     private func bind() {
-        let validation = nicknameTextField.rx.text
-            .orEmpty
-            .map { $0.count >= 2 && $0.count <= 10}
-        validation
+        let input = NicknameViewModel.Input(tap: nextButton.rx.tap, text: nicknameTextField.rx.text)
+        let output = viewModel.transform(input: input)
+        output.validation
             .bind(to: nextButton.rx.isEnabled)
             .disposed(by: disposeBag)
-        validation
+        output.validation
             .bind(with: self) { owner, value in
                 let nicknameStateLabelColor: UIColor = value ? .systemGreen : .systemRed
                 let nextButtonColor: UIColor = !value ? .systemGray : .systemBlue
@@ -38,7 +38,7 @@ class NicknameViewController: UIViewController {
                 owner.nextButton.backgroundColor = nextButtonColor
             }
             .disposed(by: disposeBag)
-        nextButton.rx.tap
+        output.tap
             .bind(with: self) { owner, _ in
                 owner.navigationController?.pushViewController(BirthdayViewController(), animated: true)
             }
