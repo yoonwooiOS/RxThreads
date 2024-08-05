@@ -26,8 +26,7 @@ class SignUpViewController: UIViewController {
     }()
    
     let nextButton = PointButton(title: "다음")
-    var emailData = PublishSubject<String>()
-    
+    let viewModel = SignUpViewModel()
     let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
@@ -42,14 +41,17 @@ class SignUpViewController: UIViewController {
     }
    
     private func bind() {
-        let validText = emailTextField.rx.text
-            .orEmpty
-            .map { $0.count >= 4 && $0.contains("@")}
-        validText
-            .debug("\(validText)")
+        let input = SignUpViewModel.Input(text: emailTextField.rx.text, tap: nextButton.rx.tap)
+        let output = viewModel.transfrom(input: input)
+       
+        output.validText
+            .bind(to: emailTextField.rx.text)
+            .disposed(by: disposeBag)
+        
+        output.validation
             .bind(to: nextButton.rx.isEnabled, validationButton.rx.isHidden)
             .disposed(by: disposeBag)
-        validText
+        output.validation
             .bind(with: self) { owner, value in
                 let color: UIColor = value ? .systemBlue : .systemGray
                 owner.nextButton.backgroundColor = color
@@ -58,10 +60,8 @@ class SignUpViewController: UIViewController {
                 owner.stateLabel.textColor = value ? .systemGreen : .systemRed
             }
             .disposed(by: disposeBag)
-        emailData
-            .bind(to: emailTextField.rx.text)
-            .disposed(by: disposeBag)
-        nextButton.rx.tap
+       
+        output.tap
             .bind(with: self) {owner, value in
                 owner.navigationController?.pushViewController(PasswordViewController(), animated: true)
             }
