@@ -10,12 +10,13 @@ import SnapKit
 import RxSwift
 import RxCocoa
 //
-class PasswordViewController: UIViewController {
+final class PasswordViewController: UIViewController {
    
     let passwordTextField = SignTextField(placeholderText: "비밀번호를 입력해주세요")
     let nextButton = PointButton(title: "다음")
     let stateLabel = UILabel()
     let validText = PublishSubject<String>()
+    let viewModel = PasswordViewModel()
     let disposeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,13 +28,17 @@ class PasswordViewController: UIViewController {
         
     }
     private func bind() {
-        let validation = passwordTextField.rx.text
-            .orEmpty
-            .map { $0.count >= 8}
-        validation
+        let input = PasswordViewModel.Input(text: passwordTextField.rx.text, tap: nextButton.rx.tap)
+        let output = viewModel.transform(input: input)
+        
+        
+        output.validText
+            .bind(to: passwordTextField.rx.text)
+            .disposed(by: disposeBag)
+        output.validation
             .bind(to: nextButton.rx.isEnabled)
             .disposed(by: disposeBag)
-        validation
+        output.validation
             .bind(with: self) { owner, value in
                 let color: UIColor = value ? .systemBlue : .systemGray
                 owner.nextButton.backgroundColor = color
@@ -41,7 +46,7 @@ class PasswordViewController: UIViewController {
                 owner.stateLabel.textColor = value ? .systemGreen : .systemRed
             }
             .disposed(by: disposeBag)
-        nextButton.rx.tap
+        output.tap
             .bind(with: self) { onwner, _ in
                 onwner.navigationController?.pushViewController(PhoneViewController(), animated: true)
             }
