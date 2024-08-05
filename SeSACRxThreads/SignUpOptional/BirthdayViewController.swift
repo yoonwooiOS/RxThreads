@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
-class BirthdayViewController: UIViewController {
+final class BirthdayViewController: UIViewController {
     
     let birthDayPicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -37,7 +37,7 @@ class BirthdayViewController: UIViewController {
     
     lazy var yearLabel: UILabel = {
         let label = UILabel()
-        label.text = "\(year)년"
+        label.text = "\(viewModel.year)년"
         label.textColor = Color.black
         label.snp.makeConstraints {
             $0.width.equalTo(100)
@@ -47,7 +47,7 @@ class BirthdayViewController: UIViewController {
     
     lazy var monthLabel: UILabel = {
         let label = UILabel()
-        label.text = "\(month)월"
+        label.text = "\(viewModel.month)월"
         label.textColor = Color.black
         label.snp.makeConstraints {
             $0.width.equalTo(100)
@@ -57,7 +57,7 @@ class BirthdayViewController: UIViewController {
     
     lazy var dayLabel: UILabel = {
         let label = UILabel()
-        label.text = "\(day)일"
+        label.text = "\(viewModel.day)일"
         label.textColor = Color.black
         label.snp.makeConstraints {
             $0.width.equalTo(100)
@@ -72,10 +72,7 @@ class BirthdayViewController: UIViewController {
     }()
     
     let disposBag = DisposeBag()
-    lazy var year = BehaviorRelay(value: yearDateFormatter())
-    lazy var month = BehaviorRelay(value: monthDateFormatter())
-    lazy var day = BehaviorRelay(value: todayDateFormatter())
-    
+    let viewModel = BirthdayViewModel()
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Color.white
@@ -83,45 +80,35 @@ class BirthdayViewController: UIViewController {
         bind()
     }
     private func bind() {
-        birthDayPicker.rx.date
+        let input = BirthdayViewModel.Input(tap: nextButton.rx.tap, date: birthDayPicker.rx.date)
+        let output = viewModel.transform(input: input)
+        output.date
             .bind(with: self) { owner, date in
                 print("날짜 바뀜 \(date)")
                 let component = Calendar.current.dateComponents([.day, .month, .year], from: date)
-                owner.year.accept(component.year!)
-                owner.month.accept(component.month!)
-                owner.day.accept(component.day!)
+                owner.viewModel.year.accept(component.year!)
+                owner.viewModel.month.accept(component.month!)
+                owner.viewModel.day.accept(component.day!)
             }
             .disposed(by: disposBag)
-        year
+        output.year
             .map { "\($0)년"}
             .bind(to: yearLabel.rx.text)
             .disposed(by: disposBag)
-        month
+        output.month
             .map { "\($0)월"}
             .bind(to: monthLabel.rx.text)
             .disposed(by: disposBag)
-        day
+        output.day
             .map { "\($0)일"}
             .bind(to: dayLabel.rx.text)
             .disposed(by: disposBag)
         
-        let validation = Observable.combineLatest(year, month, day) { year, month, day in
-            var components = DateComponents()
-            components.year = year
-            components.month = month
-            components.day = day
-            let birthday = Calendar.current.date(from: components)!
-            let currentDate = Date()
-            let calendar = Calendar.current
-            let ageComponents = calendar.dateComponents([.year], from: birthday, to: currentDate)
-            let age = ageComponents.year!
-            return age >= 17
-        }
-        validation
+        output.validation
             .map {$0 ? ValidText.BirthdayError.validBirthDay.rawValue :   ValidText.BirthdayError.invalidBirthday.rawValue }
             .bind(to: infoLabel.rx.text)
             .disposed(by: disposBag)
-        validation
+        output.validation
             .bind(with: self) { owner, value in
                 let infoLabelColor: UIColor = value ? .systemGreen : .systemRed
                 let nextButtonColor: UIColor = value ? .systemBlue : .systemGray
@@ -130,7 +117,7 @@ class BirthdayViewController: UIViewController {
                 owner.nextButton.backgroundColor = nextButtonColor
             }
             .disposed(by: disposBag)
-        nextButton.rx.tap
+        output.tap
             .bind(with: self) { owner, _ in
                 owner.showAlert(t: "가입되었습니다!", msg: "", style: .alert, ok: "확인") { _ in
                     let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene

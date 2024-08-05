@@ -19,7 +19,9 @@ class SignTextField: UITextField {
         layer.cornerRadius = 10
         layer.borderWidth = 1
         layer.borderColor = Color.black.cgColor
-        
+        autocorrectionType = .no
+        spellCheckingType = .no
+      
     }
     
     @available(*, unavailable)
